@@ -1,0 +1,84 @@
+{
+  "name": "@tophat/yarn-plugin-semver-up",
+  "version": "0.0.1",
+  "description": "Yarn Berry plugin to update dependencies",
+  "main": "./src/index.ts",
+  "repository": "git@github.com:tophat/yarn-plugin-semver-up.git",
+  "author": "Top Hat Monocle Corp. <opensource@tophat.com>",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "clean": "rm -rf ${ARTIFACT_DIR:-artifacts} lib && find ./src -name '*.js' -type f -delete",
+    "test": "jest",
+    "test:ci": "jest --ci",
+    "test:update": "jest -u",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:ci": "eslint . --format junit --output-file ${ARTIFACT_DIR:-artifacts}/test_results/eslint/eslint.junit.xml",
+    "build": "builder build plugin",
+    "prepack": "yarn build",
+    "contrib:add": "all-contributors add",
+    "contrib:generate": "all-contributors generate",
+    "contrib:check": "all-contributors check"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.13.16",
+    "@babel/core": "^7.14.2",
+    "@babel/plugin-transform-runtime": "^7.14.2",
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-typescript": "^7.13.0",
+    "@commitlint/cli": "^11.0.0",
+    "@tophat/commitlint-config": "^0.1.2",
+    "@tophat/conventional-changelog-config": "^0.0.9",
+    "@tophat/eslint-config": "^0.7.0",
+    "@types/jest": "^26.0.20",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "@yarnpkg/builder": "^3.0.0-rc.2",
+    "@yarnpkg/pnpify": "^3.0.0-rc.3",
+    "all-contributors-cli": "^6.20.0",
+    "babel-jest": "^26.6.3",
+    "commitizen": "^4.2.4",
+    "eslint": "^7.26.0",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-import-resolver-typescript": "^2.4.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.3.6",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.23.2",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "husky": "^6.0.0",
+    "jest": "^26.6.3",
+    "jest-junit": "^12.0.0",
+    "lint-staged": "^11.0.0",
+    "prettier": "^2.2.1",
+    "yaml-validator": "^3.0.1"
+  },
+  "lint-staged": {
+    "yarn.lock": [
+      "yarn dedupe --check"
+    ],
+    "*.ts": [
+      "yarn eslint",
+      "yarn jest --findRelatedTests"
+    ],
+    "*.{yml,yaml}": [
+      "yarn yaml-validator"
+    ]
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@types/node": "^14.0.0",
+    "@yarnpkg/core": "^3.0.0-rc.2",
+    "@yarnpkg/fslib": "^2.5.0-rc.2",
+    "@yarnpkg/libzip": "^2.2.1",
+    "clipanion": "^3.0.0-rc.12",
+    "typescript": "~4.2.4"
+  }
+}

@@ -1,0 +1,6 @@
+/* eslint-disable */
+module.exports = {
+name: "@yarnpkg/plugin-semver-up",
+factory: function (require) {var plugin;(()=>{"use strict";var e={d:(t,r)=>{for(var n in r)e.o(r,n)&&!e.o(t,n)&&Object.defineProperty(t,n,{enumerable:!0,get:r[n]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})}},t={};e.r(t),e.d(t,{default:()=>a});const r=require("@yarnpkg/core"),n=require("clipanion");class o extends n.Command{async execute(){try{const e=await r.Configuration.find(this.context.cwd,this.context.plugins),{project:t}=await r.Project.find(e,this.context.cwd);return await t.restoreInstallState(),this.context.stdout.write("Done\n"),0}catch(e){return this.context.stderr.write(String(e)+"\n"),1}}}o.paths=[["semver","up"]],o.usage=n.Command.Usage({description:"",details:"",examples:[]});const a={hooks:{},commands:[o]};plugin=t})();return plugin;
+}
+};
