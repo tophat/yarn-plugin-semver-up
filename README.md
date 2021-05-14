@@ -26,7 +26,8 @@ Define a `semver-up.json` config file like so:
             "preserveSemVerRange": true
         }]
     ],
-    "maxRulesApplied": 1
+    "maxRulesApplied": 1,
+    "skipManifestOnlyChanges": false
 }
 ```
 
@@ -52,10 +53,18 @@ If you set `maxPackageUpdates` for a group, you can limit the number of packages
 
 If you set `maxRulesApplied`, you can limit how many groups to update. It defaults to `1` with the idea that we want to keep pull requests constrainted to related dependencies. You can disable it by setting `maxRulesApplied` to false, thus removing the limit.
 
+If you set `skipManifestOnlyChanges` to true, changes that would only raise the version in the package.json but not the yarn.lock (because the resolved version has already been updated), will be skipped.
+
 You can use dry run mode to not commit changes to the package.jsons.
 
 ```sh
 yarn semver up --config semver-up.json --dry-run
+```
+
+You can specify a changeset output file that'll output what's been changed.
+
+```sh
+yarn semver up --config semver-up.json --changeset out.json
 ```
 
 ## Contributors
