@@ -142,9 +142,9 @@ class SemverUpCommand extends Command<CommandContext> {
         try {
             configFromFile = miscUtils.dynamicRequireNoCache(configPPath)
         } catch (e) {
-            this.context.stdout.write(
-                `${this.configFilename} file not detected, using default config\n`,
-            )
+            configFromFile = {
+                rules: [['*', {}]],
+            }
         }
 
         const rulesFromFile = (configFromFile?.rules ?? []) as Array<
