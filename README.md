@@ -4,6 +4,12 @@
 
 Yarn Berry plugin to update dependencies.
 
+## Installation
+
+```sh
+yarn plugin import https://raw.githubusercontent.com/tophat/yarn-plugin-semver-up/master/bundles/%40yarnpkg/plugin-semver-up.js
+```
+
 ## Usage
 
 ```sh
