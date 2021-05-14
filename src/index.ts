@@ -3,6 +3,7 @@ import {
     CommandContext,
     Configuration,
     Descriptor,
+    DescriptorHash,
     IdentHash,
     MessageName,
     Plugin,
@@ -12,7 +13,7 @@ import {
     miscUtils,
     structUtils,
 } from '@yarnpkg/core'
-import { npath, ppath } from '@yarnpkg/fslib'
+import { npath, ppath, xfs } from '@yarnpkg/fslib'
 import { suggestUtils } from '@yarnpkg/plugin-essentials'
 import { Command, Option, Usage } from 'clipanion'
 import micromatch from 'micromatch'
@@ -31,6 +32,9 @@ interface Config {
 
     // Defaults to 1, though can be false to apply no limit
     maxRulesApplied: number | false
+
+    // whether to skip changes that update the package.json but not installed dependencies
+    skipManifestOnlyChanges: boolean
 }
 
 type RulesWithPackages = Array<
@@ -38,6 +42,14 @@ type RulesWithPackages = Array<
 >
 
 type RulesWithUpdates = Map<RuleGlob, Map<IdentHash, Descriptor>>
+
+interface ChangesetRecord {
+    fromRange: string
+    toRange: string
+    fromVersion: string | null
+    toVersion: string
+}
+type Changeset = Map<string, ChangesetRecord>
 
 const ruleConfigDefaults: RuleConfig = {
     maxPackageUpdates: false,
@@ -54,6 +66,10 @@ class SemverUpCommand extends Command<CommandContext> {
     })
 
     configFilename: string = Option.String('--config', 'semver-up.json')
+
+    changesetFilename?: string = Option.String('--changeset', {
+        required: false,
+    })
 
     dryRun: boolean = Option.Boolean('--dry-run', false)
 
@@ -102,15 +118,27 @@ class SemverUpCommand extends Command<CommandContext> {
                     },
                 )
 
+                let changeset: Changeset
+
                 await report.startTimerPromise(
                     'Staging Updates',
                     { skipIfEmpty: false },
                     async () => {
-                        await this.applyUpdates({
+                        changeset = await this.applyUpdates({
                             config,
                             workspace,
                             rulesWithUpdates,
                             report,
+                        })
+                    },
+                )
+
+                await report.startTimerPromise(
+                    'Writing Changeset File',
+                    { skipIfEmpty: true },
+                    async () => {
+                        await this.writeChangeset({
+                            changeset,
                         })
                     },
                 )
@@ -158,6 +186,10 @@ class SemverUpCommand extends Command<CommandContext> {
             ]),
             maxRulesApplied:
                 (configFromFile?.maxRulesApplied as number | undefined) ?? 1,
+            skipManifestOnlyChanges:
+                (configFromFile?.skipManifestOnlyChanges as
+                    | boolean
+                    | undefined) ?? false,
         }
 
         return config
@@ -248,6 +280,30 @@ class SemverUpCommand extends Command<CommandContext> {
         return groups
     }
 
+    getInstalledVersion({
+        descriptorHash,
+        project,
+    }: {
+        descriptorHash: DescriptorHash
+        project: Project
+    }): string | null {
+        const locatorHash = project.storedResolutions.get(descriptorHash)
+        if (locatorHash) {
+            const pkg = project.storedPackages.get(locatorHash)
+            if (pkg) {
+                return pkg.version
+            }
+        }
+        return null
+    }
+
+    extractVersionFromRange(range: string): string {
+        if (range.match(/^[\^~]/)) {
+            return range.substring(1)
+        }
+        return range
+    }
+
     async applyUpdates({
         config,
         rulesWithUpdates,
@@ -258,7 +314,8 @@ class SemverUpCommand extends Command<CommandContext> {
         rulesWithUpdates: RulesWithUpdates
         workspace: Workspace
         report: StreamReport
-    }): Promise<void> {
+    }): Promise<Changeset> {
+        const changeset: Changeset = new Map()
         const globToRule = new Map<RuleGlob, RuleConfig>(config.rules)
 
         let rulesAppliedCount = 0
@@ -286,27 +343,92 @@ class SemverUpCommand extends Command<CommandContext> {
                     structUtils.convertToIdent(descriptor),
                 )
 
-                for (const dependencyScope of [
-                    'dependencies',
-                    'devDependencies',
-                ]) {
-                    const dependencies = workspace.manifest.getForScope(
-                        dependencyScope,
-                    )
-                    const oldDescriptor = dependencies.get(identHash)
-                    if (!oldDescriptor) continue
-                    dependencies.set(identHash, descriptor)
-                    ruleUpdateCount += 1
+                const oldDescriptor = workspace.dependencies.get(identHash)
+                if (!oldDescriptor) continue
 
-                    report.reportInfo(
-                        MessageName.UNNAMED,
-                        `[${ruleGlob}] ${stringifiedIdent}: ${oldDescriptor.range} -> ${descriptor.range}`,
-                    )
+                const fromRange = structUtils.parseRange(oldDescriptor.range)
+                    .selector
+                const toRange = structUtils.parseRange(descriptor.range)
+                    .selector
+                const fromVersion = this.getInstalledVersion({
+                    descriptorHash: oldDescriptor.descriptorHash,
+                    project: workspace.project,
+                })
+                const toVersion = this.extractVersionFromRange(toRange)
+
+                if (fromVersion === toVersion && config.skipManifestOnlyChanges)
+                    continue
+
+                changeset.set(stringifiedIdent, {
+                    fromRange,
+                    toRange,
+                    fromVersion,
+                    toVersion,
+                })
+
+                report.reportInfo(
+                    MessageName.UNNAMED,
+                    `[${ruleGlob}] ${stringifiedIdent}: ${fromRange} -> ${toRange}`,
+                )
+
+                for (const scopeKey of ['dependencies', 'devDependencies']) {
+                    if (
+                        workspace.manifest.getForScope(scopeKey).has(identHash)
+                    ) {
+                        workspace.manifest
+                            .getForScope(scopeKey)
+                            .set(identHash, descriptor)
+                    }
                 }
+
+                ruleUpdateCount += 1
             }
 
             if (ruleUpdateCount) rulesAppliedCount += 1
         }
+
+        return changeset
+    }
+
+    async writeChangeset({
+        changeset,
+    }: {
+        changeset: Changeset
+    }): Promise<void> {
+        if (!this.changesetFilename) return
+
+        const changesetPPath = ppath.resolve(
+            ppath.cwd(),
+            npath.toPortablePath(this.changesetFilename),
+        )
+        const changesetData: {
+            [k: string]: {
+                // eslint-disable-next-line camelcase
+                from_version: string | null
+                // eslint-disable-next-line camelcase
+                from_range: string
+                // eslint-disable-next-line camelcase
+                to_version: string
+                // eslint-disable-next-line camelcase
+                to_range: string
+                // eslint-disable-next-line camelcase
+                release_notes: string | null
+            }
+        } = {}
+        for (const [pkgName, record] of changeset.entries()) {
+            changesetData[pkgName] = {
+                from_version: record.fromVersion,
+                from_range: record.fromRange,
+                to_version: record.toVersion,
+                to_range: record.toRange,
+                release_notes: null,
+            }
+        }
+        await xfs.writeFilePromise(
+            changesetPPath,
+            JSON.stringify(changesetData, null, 2),
+            { encoding: 'utf8' },
+        )
     }
 }
 
