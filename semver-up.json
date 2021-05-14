@@ -1,0 +1,9 @@
+{
+    "rules": [
+        ["@babel/*", {
+            "maxPackageUpdates": false,
+            "preserveSemVerRange": true
+        }]
+    ],
+    "maxRulesApplied": 1
+}

@@ -1935,13 +1935,17 @@ __metadata:
     "@tophat/conventional-changelog-config": ^0.0.9
     "@tophat/eslint-config": ^0.7.0
     "@types/jest": ^26.0.20
+    "@types/micromatch": ^4.0.1
     "@types/node": ^14.0.0
     "@typescript-eslint/eslint-plugin": ^4.23.0
     "@typescript-eslint/parser": ^4.23.0
     "@yarnpkg/builder": ^3.0.0-rc.2
+    "@yarnpkg/cli": ^3.0.0-rc.2
     "@yarnpkg/core": ^3.0.0-rc.2
     "@yarnpkg/fslib": ^2.5.0-rc.2
     "@yarnpkg/libzip": ^2.2.1
+    "@yarnpkg/plugin-essentials": ^3.0.0-rc.2
+    "@yarnpkg/plugin-npm": ^2.5.0-rc.2
     "@yarnpkg/pnpify": ^3.0.0-rc.3
     all-contributors-cli: ^6.20.0
     babel-jest: ^26.6.3
@@ -1960,6 +1964,7 @@ __metadata:
     jest: ^26.6.3
     jest-junit: ^12.0.0
     lint-staged: ^11.0.0
+    micromatch: ^4.0.4
     prettier: ^2.2.1
     typescript: ~4.2.4
     yaml-validator: ^3.0.1
@@ -2004,6 +2009,13 @@ __metadata:
   dependencies:
     "@babel/types": ^7.3.0
   checksum: 4e86b3d0ee9fe19bd7e1b523b71ed7cbef0f0fe37158970ef1e6c22da218fef05f79e79b07f2c10dc9bbe3ea9fb7e69dfce9761aff16fb10e891d14cac6d66d4
+  languageName: node
+  linkType: hard
+
+"@types/braces@npm:*":
+  version: 3.0.0
+  resolution: "@types/braces@npm:3.0.0"
+  checksum: 4f2a99b04cd5141d2c64051e002447c6ef243dc90855b5293c4f3b02ca65435c7ed1ae647497ff0f253fbf0105af31b7190ebbe88e121b1c435f3c58cacc96df
   languageName: node
   linkType: hard
 
@@ -2124,6 +2136,15 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: ee0d098693bf4af44be756eed02daf95f5d0fd4b5b02da952a5952e08842baddf6a986a9ea5f9e460729782f1a0a47848c892ad96ea188b66a363feb49a1536f
+  languageName: node
+  linkType: hard
+
+"@types/micromatch@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@types/micromatch@npm:4.0.1"
+  dependencies:
+    "@types/braces": "*"
+  checksum: 4f9fea285778c579055c83fbb025f576c3adc9541ec89e12f1e192e53c0885a04d1a5863b44001606f01964f12b26f8b08b033c06de11ca9de78d58e7a672850
   languageName: node
   linkType: hard
 
@@ -5701,20 +5722,20 @@ __metadata:
   linkType: hard
 
 "fsevents@^2.1.2, fsevents@~2.3.1":
-  version: 2.3.1
-  resolution: "fsevents@npm:2.3.1"
+  version: 2.3.2
+  resolution: "fsevents@npm:2.3.2"
   dependencies:
     node-gyp: latest
-  checksum: 7992dac7961be985b3c3c64d79f4489278ab179da2cdc190a88085e3526ab6fa0fb1b78d94ab8669649208a0728fdd2dab1f4b522566ace132b687b5e6a341a1
+  checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
   languageName: node
   linkType: hard
 
 "fsevents@patch:fsevents@^2.1.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.1#~builtin<compat/fsevents>":
-  version: 2.3.1
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.1#~builtin<compat/fsevents>::version=2.3.1&hash=1cc4b2"
+  version: 2.3.2
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=1cc4b2"
   dependencies:
     node-gyp: latest
-  checksum: 69e026dbd99b1e2fe52cbd80c7697f62a2f7f79c5175e99f21c26b7aecc47d979bdbb8af56c5e4eeeeaf66a0f84a0198c60008ed21998a57b147d0ca5dc0d496
+  checksum: 78db9daf1f6526a49cefee3917cc988f62dc7f25b5dd80ad6de4ffc4af7f0cab7491ac737626ff53e482a111bc53aac9e411fe3602458eca36f6a003ecf69c16
   languageName: node
   linkType: hard
 
