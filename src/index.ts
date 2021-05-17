@@ -91,47 +91,38 @@ class SemverUpCommand extends Command<CommandContext> {
             const workspace = project.topLevelWorkspace
 
             const pipeline = async (report: StreamReport) => {
-                let rulesWithPackages: RulesWithPackages
-
-                await report.startTimerPromise(
+                const rulesWithPackages = ((await report.startTimerPromise<RulesWithPackages>(
                     'Processing Semver Up Rules',
                     { skipIfEmpty: false },
-                    async () => {
-                        rulesWithPackages = await this.getRulesWithPackages({
+                    async () =>
+                        this.getRulesWithPackages({
                             config,
                             workspace,
-                        })
-                    },
-                )
+                        }),
+                )) as unknown) as RulesWithPackages
 
-                let rulesWithUpdates: RulesWithUpdates
-
-                await report.startTimerPromise(
+                const rulesWithUpdates = ((await report.startTimerPromise<RulesWithUpdates>(
                     'Finding Updates',
                     { skipIfEmpty: false },
-                    async () => {
-                        rulesWithUpdates = await this.findUpdateCandidates({
+                    async () =>
+                        this.findUpdateCandidates({
                             workspace,
                             rulesWithPackages,
                             cache,
-                        })
-                    },
-                )
+                        }),
+                )) as unknown) as RulesWithUpdates
 
-                let changeset: Changeset
-
-                await report.startTimerPromise(
+                const changeset = ((await report.startTimerPromise<Changeset>(
                     'Staging Updates',
                     { skipIfEmpty: false },
-                    async () => {
-                        changeset = await this.applyUpdates({
+                    async () =>
+                        this.applyUpdates({
                             config,
                             workspace,
                             rulesWithUpdates,
                             report,
-                        })
-                    },
-                )
+                        }),
+                )) as unknown) as Changeset
 
                 await report.startTimerPromise(
                     'Writing Changeset File',
@@ -343,15 +334,16 @@ class SemverUpCommand extends Command<CommandContext> {
                     structUtils.convertToIdent(descriptor),
                 )
 
-                const oldDescriptor = workspace.dependencies.get(identHash)
-                if (!oldDescriptor) continue
+                const oldBoundDescriptor = workspace.dependencies.get(identHash)
+                if (!oldBoundDescriptor) continue
 
-                const fromRange = structUtils.parseRange(oldDescriptor.range)
-                    .selector
+                const fromRange = structUtils.parseRange(
+                    oldBoundDescriptor.range,
+                ).selector
                 const toRange = structUtils.parseRange(descriptor.range)
                     .selector
                 const fromVersion = this.getInstalledVersion({
-                    descriptorHash: oldDescriptor.descriptorHash,
+                    descriptorHash: oldBoundDescriptor.descriptorHash,
                     project: workspace.project,
                 })
                 const toVersion = this.extractVersionFromRange(toRange)
@@ -379,6 +371,10 @@ class SemverUpCommand extends Command<CommandContext> {
                             .getForScope(scopeKey)
                             .set(identHash, descriptor)
                     }
+                }
+
+                if (!this.dryRun) {
+                    workspace.project.forgetResolution(oldBoundDescriptor)
                 }
 
                 ruleUpdateCount += 1
