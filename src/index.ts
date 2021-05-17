@@ -183,7 +183,10 @@ class SemverUpCommand extends Command<CommandContext> {
                 { ...ruleConfigDefaults, ...rule },
             ]),
             maxRulesApplied:
-                (configFromFile?.maxRulesApplied as number | undefined) ?? 1,
+                (configFromFile?.maxRulesApplied as
+                    | number
+                    | false
+                    | undefined) ?? 1,
             skipManifestOnlyChanges:
                 (configFromFile?.skipManifestOnlyChanges as
                     | boolean
@@ -193,6 +196,7 @@ class SemverUpCommand extends Command<CommandContext> {
         // overwrite rules with command line args
         if (this.ruleGlobs.length) {
             config.rules = []
+            config.maxRulesApplied = false
             for (const ruleGlob of this.ruleGlobs) {
                 config.rules.push([ruleGlob, { ...ruleConfigDefaults }])
             }
