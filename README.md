@@ -72,6 +72,12 @@ yarn semver up --config semver-up.json --changeset out.json
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/dbasilio"><img src="https://avatars.githubusercontent.com/u/8311284?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel Basilio</b></sub></a><br /><a href="#ideas-dbasilio" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/tophat/yarn-plugin-semver-up/commits?author=dbasilio" title="Code">💻</a></td>
+  </tr>
+</table>
+
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
