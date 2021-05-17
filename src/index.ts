@@ -17,6 +17,9 @@ import { npath, ppath, xfs } from '@yarnpkg/fslib'
 import { suggestUtils } from '@yarnpkg/plugin-essentials'
 import { Command, Option, Usage } from 'clipanion'
 import micromatch from 'micromatch'
+import { ReleaseType } from 'semver'
+import semverDiff from 'semver/functions/diff'
+import semverMinVersion from 'semver/ranges/min-version'
 
 interface RuleConfig {
     // How many packages in the group to update. If false, do not impose a limit
@@ -48,6 +51,7 @@ interface ChangesetRecord {
     toRange: string
     fromVersion: string | null
     toVersion: string
+    updateType: ReleaseType | null
 }
 type Changeset = Map<string, ChangesetRecord>
 
@@ -289,10 +293,26 @@ class SemverUpCommand extends Command<CommandContext> {
     }
 
     extractVersionFromRange(range: string): string {
-        if (range.match(/^[\^~]/)) {
-            return range.substring(1)
+        const minVersion = semverMinVersion(range, { loose: true })
+        if (minVersion) {
+            return minVersion.version
         }
         return range
+    }
+
+    getUpdateType({
+        fromVersion,
+        toVersion,
+    }: {
+        fromVersion: string | null
+        toVersion: string | null
+    }): ReleaseType | null {
+        if (!fromVersion || !toVersion) return null
+        try {
+            return semverDiff(fromVersion, toVersion, { loose: true })
+        } catch (err) {
+            return null
+        }
     }
 
     async applyUpdates({
@@ -356,6 +376,7 @@ class SemverUpCommand extends Command<CommandContext> {
                     toRange,
                     fromVersion,
                     toVersion,
+                    updateType: this.getUpdateType({ fromVersion, toVersion }),
                 })
 
                 report.reportInfo(
@@ -409,6 +430,8 @@ class SemverUpCommand extends Command<CommandContext> {
                 to_range: string
                 // eslint-disable-next-line camelcase
                 release_notes: string | null
+                // eslint-disable-next-line camelcase
+                update_type: string | null
             }
         } = {}
         for (const [pkgName, record] of changeset.entries()) {
@@ -417,6 +440,7 @@ class SemverUpCommand extends Command<CommandContext> {
                 from_range: record.fromRange,
                 to_version: record.toVersion,
                 to_range: record.toRange,
+                update_type: record.updateType,
                 release_notes: null,
             }
         }
