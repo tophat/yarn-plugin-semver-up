@@ -169,7 +169,7 @@ class SemverUpCommand extends Command<CommandContext> {
         } catch (e) {
             // If no file and no command line args, default to match all packages
             configFromFile = {
-                rules: [this.ruleGlobs.length ? [] : ['*', {}]],
+                rules: [['*', {}]],
             }
         }
 
@@ -190,9 +190,12 @@ class SemverUpCommand extends Command<CommandContext> {
                     | undefined) ?? false,
         }
 
-        // merge with rules from command line
-        for (const ruleGlob of this.ruleGlobs) {
-            config.rules.push([ruleGlob, { ...ruleConfigDefaults }])
+        // overwrite rules with command line args
+        if (this.ruleGlobs.length) {
+            config.rules = []
+            for (const ruleGlob of this.ruleGlobs) {
+                config.rules.push([ruleGlob, { ...ruleConfigDefaults }])
+            }
         }
 
         return config
