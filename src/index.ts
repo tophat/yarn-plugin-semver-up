@@ -77,6 +77,8 @@ class SemverUpCommand extends Command<CommandContext> {
 
     dryRun: boolean = Option.Boolean('--dry-run', false)
 
+    ruleGlobs: Array<string> = Option.Rest()
+
     async execute(): Promise<number> {
         try {
             const configuration = await Configuration.find(
@@ -165,8 +167,9 @@ class SemverUpCommand extends Command<CommandContext> {
         try {
             configFromFile = miscUtils.dynamicRequireNoCache(configPPath)
         } catch (e) {
+            // If no file and no command line args, default to match all packages
             configFromFile = {
-                rules: [['*', {}]],
+                rules: [this.ruleGlobs.length ? [] : ['*', {}]],
             }
         }
 
@@ -185,6 +188,11 @@ class SemverUpCommand extends Command<CommandContext> {
                 (configFromFile?.skipManifestOnlyChanges as
                     | boolean
                     | undefined) ?? false,
+        }
+
+        // merge with rules from command line
+        for (const ruleGlob of this.ruleGlobs) {
+            config.rules.push([ruleGlob, { ...ruleConfigDefaults }])
         }
 
         return config

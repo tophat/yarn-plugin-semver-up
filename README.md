@@ -67,6 +67,12 @@ You can specify a changeset output file that'll output what's been changed.
 yarn semver up --config semver-up.json --changeset out.json
 ```
 
+If you don't specify a semver-up, you can pass rule globs into the command line:
+
+```sh
+yarn semver up --dry-run "react*" "@babel/*"
+```
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
