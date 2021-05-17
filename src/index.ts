@@ -334,15 +334,16 @@ class SemverUpCommand extends Command<CommandContext> {
                     structUtils.convertToIdent(descriptor),
                 )
 
-                const oldDescriptor = workspace.dependencies.get(identHash)
-                if (!oldDescriptor) continue
+                const oldBoundDescriptor = workspace.dependencies.get(identHash)
+                if (!oldBoundDescriptor) continue
 
-                const fromRange = structUtils.parseRange(oldDescriptor.range)
-                    .selector
+                const fromRange = structUtils.parseRange(
+                    oldBoundDescriptor.range,
+                ).selector
                 const toRange = structUtils.parseRange(descriptor.range)
                     .selector
                 const fromVersion = this.getInstalledVersion({
-                    descriptorHash: oldDescriptor.descriptorHash,
+                    descriptorHash: oldBoundDescriptor.descriptorHash,
                     project: workspace.project,
                 })
                 const toVersion = this.extractVersionFromRange(toRange)
@@ -370,6 +371,10 @@ class SemverUpCommand extends Command<CommandContext> {
                             .getForScope(scopeKey)
                             .set(identHash, descriptor)
                     }
+                }
+
+                if (!this.dryRun) {
+                    workspace.project.forgetResolution(oldBoundDescriptor)
                 }
 
                 ruleUpdateCount += 1
