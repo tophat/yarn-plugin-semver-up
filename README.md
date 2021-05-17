@@ -75,6 +75,7 @@ yarn semver up --config semver-up.json --changeset out.json
 <table>
   <tr>
     <td align="center"><a href="https://github.com/dbasilio"><img src="https://avatars.githubusercontent.com/u/8311284?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel Basilio</b></sub></a><br /><a href="#ideas-dbasilio" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/tophat/yarn-plugin-semver-up/commits?author=dbasilio" title="Code">💻</a></td>
+    <td align="center"><a href="https://noahnu.com"><img src="https://avatars.githubusercontent.com/u/1297096?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Noah</b></sub></a><br /><a href="https://github.com/tophat/yarn-plugin-semver-up/commits?author=noahnu" title="Code">💻</a> <a href="#infra-noahnu" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
   </tr>
 </table>
 
