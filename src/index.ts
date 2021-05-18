@@ -8,7 +8,9 @@ import {
     MessageName,
     Plugin,
     Project,
+    Report,
     StreamReport,
+    ThrowReport,
     Workspace,
     miscUtils,
     structUtils,
@@ -98,7 +100,7 @@ class SemverUpCommand extends Command<CommandContext> {
             const config = await this.parseConfigFile()
             const workspace = project.topLevelWorkspace
 
-            const pipeline = async (report: StreamReport) => {
+            const pipeline = async (report: Report) => {
                 const rulesWithPackages = ((await report.startTimerPromise<RulesWithPackages>(
                     'Processing Semver Up Rules',
                     { skipIfEmpty: false },
@@ -117,6 +119,7 @@ class SemverUpCommand extends Command<CommandContext> {
                             workspace,
                             rulesWithPackages,
                             cache,
+                            configuration,
                         }),
                 )) as unknown) as RulesWithUpdates
 
@@ -145,6 +148,17 @@ class SemverUpCommand extends Command<CommandContext> {
                 if (!this.dryRun) {
                     await project.install({ cache, report })
                 }
+            }
+
+            const plumbingMode = this.changesetFilename === '-'
+
+            if (plumbingMode) {
+                try {
+                    await pipeline(new ThrowReport())
+                } catch (err) {
+                    return 1
+                }
+                return 0
             }
 
             const report = await StreamReport.start(
@@ -255,10 +269,12 @@ class SemverUpCommand extends Command<CommandContext> {
         workspace,
         rulesWithPackages,
         cache,
+        configuration,
     }: {
         workspace: Workspace
         rulesWithPackages: RulesWithPackages
         cache: Cache
+        configuration: Configuration
     }): Promise<RulesWithUpdates> {
         const descriptors: Map<IdentHash, Descriptor> = new Map([
             ...workspace.manifest.dependencies.entries(),
@@ -273,6 +289,14 @@ class SemverUpCommand extends Command<CommandContext> {
             for (const pkg of packages) {
                 const oldDescriptor = descriptors.get(pkg)
                 if (!oldDescriptor) continue
+
+                const oldRange = structUtils.parseRange(oldDescriptor.range)
+                const isSemverProtocol =
+                    (oldRange.protocol === null &&
+                        configuration.get('defaultProtocol') === 'npm:') ||
+                    oldRange.protocol === 'npm:'
+
+                if (!isSemverProtocol) continue
 
                 const ident = structUtils.convertToIdent(oldDescriptor)
                 const newDescriptor = await suggestUtils.fetchDescriptorFrom(
@@ -351,7 +375,7 @@ class SemverUpCommand extends Command<CommandContext> {
         config: Config
         rulesWithUpdates: RulesWithUpdates
         workspace: Workspace
-        report: StreamReport
+        report: Report
     }): Promise<Changeset> {
         const changeset: Changeset = new Map()
         const globToRule = new Map<RuleGlob, RuleConfig>(config.rules)
@@ -441,10 +465,6 @@ class SemverUpCommand extends Command<CommandContext> {
     }): Promise<void> {
         if (!this.changesetFilename) return
 
-        const changesetPPath = ppath.resolve(
-            ppath.cwd(),
-            npath.toPortablePath(this.changesetFilename),
-        )
         const changesetData: {
             [k: string]: {
                 // eslint-disable-next-line camelcase
@@ -471,11 +491,20 @@ class SemverUpCommand extends Command<CommandContext> {
                 release_notes: null,
             }
         }
-        await xfs.writeFilePromise(
-            changesetPPath,
-            JSON.stringify(changesetData, null, 2),
-            { encoding: 'utf8' },
-        )
+
+        const jsonData = JSON.stringify(changesetData, null, 2)
+
+        if (this.changesetFilename === '-') {
+            this.context.stdout.write(jsonData)
+        } else {
+            const changesetPPath = ppath.resolve(
+                ppath.cwd(),
+                npath.toPortablePath(this.changesetFilename),
+            )
+            await xfs.writeFilePromise(changesetPPath, jsonData, {
+                encoding: 'utf8',
+            })
+        }
     }
 }
 
