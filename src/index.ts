@@ -77,6 +77,8 @@ class SemverUpCommand extends Command<CommandContext> {
 
     dryRun: boolean = Option.Boolean('--dry-run', false)
 
+    preserveSemVerRange: boolean = Option.Boolean('--preserve-semver', true)
+
     ruleGlobs: Array<string> = Option.Rest()
 
     async execute(): Promise<number> {
@@ -180,7 +182,11 @@ class SemverUpCommand extends Command<CommandContext> {
         const config: Config = {
             rules: rulesFromFile.map(([ruleGlob, rule]) => [
                 ruleGlob,
-                { ...ruleConfigDefaults, ...rule },
+                {
+                    ...ruleConfigDefaults,
+                    preserveSemVerRange: this.preserveSemVerRange,
+                    ...rule,
+                },
             ]),
             maxRulesApplied:
                 (configFromFile?.maxRulesApplied as
@@ -198,7 +204,13 @@ class SemverUpCommand extends Command<CommandContext> {
             config.rules = []
             config.maxRulesApplied = false
             for (const ruleGlob of this.ruleGlobs) {
-                config.rules.push([ruleGlob, { ...ruleConfigDefaults }])
+                config.rules.push([
+                    ruleGlob,
+                    {
+                        ...ruleConfigDefaults,
+                        preserveSemVerRange: this.preserveSemVerRange,
+                    },
+                ])
             }
         }
 
