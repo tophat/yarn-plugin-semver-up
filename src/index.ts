@@ -108,6 +108,7 @@ class SemverUpCommand extends Command<CommandContext> {
                         this.getRulesWithPackages({
                             config,
                             workspace,
+                            report,
                         }),
                 )) as unknown) as RulesWithPackages
 
@@ -235,9 +236,11 @@ class SemverUpCommand extends Command<CommandContext> {
     async getRulesWithPackages({
         config,
         workspace,
+        report,
     }: {
         config: Config
         workspace: Workspace
+        report: Report
     }): Promise<RulesWithPackages> {
         const manifest = workspace.manifest
 
@@ -250,6 +253,9 @@ class SemverUpCommand extends Command<CommandContext> {
             ...manifest.devDependencies.entries(),
         ]
 
+        const progress = StreamReport.progressViaCounter(allDependencies.length)
+        const reportedProgress = report.reportProgress(progress)
+
         for (const [identHash, descriptor] of allDependencies) {
             const bucket = ruleBuckets.find(
                 ([ruleGlob]) =>
@@ -261,7 +267,10 @@ class SemverUpCommand extends Command<CommandContext> {
             if (bucket) {
                 bucket[1].packages.add(identHash)
             }
+            progress.tick()
         }
+
+        await reportedProgress
 
         return ruleBuckets
     }
