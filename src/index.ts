@@ -120,6 +120,7 @@ class SemverUpCommand extends Command<CommandContext> {
                             rulesWithPackages,
                             cache,
                             configuration,
+                            report,
                         }),
                 )) as unknown) as RulesWithUpdates
 
@@ -270,11 +271,13 @@ class SemverUpCommand extends Command<CommandContext> {
         rulesWithPackages,
         cache,
         configuration,
+        report,
     }: {
         workspace: Workspace
         rulesWithPackages: RulesWithPackages
         cache: Cache
         configuration: Configuration
+        report: Report
     }): Promise<RulesWithUpdates> {
         const descriptors: Map<IdentHash, Descriptor> = new Map([
             ...workspace.manifest.dependencies.entries(),
@@ -286,9 +289,15 @@ class SemverUpCommand extends Command<CommandContext> {
         for (const [ruleGlob, { rule, packages }] of rulesWithPackages) {
             const updates = new Map<IdentHash, Descriptor>()
 
+            const progress = StreamReport.progressViaCounter(packages.size)
+            const reportedProgress = report.reportProgress(progress)
+
             for (const pkg of packages) {
                 const oldDescriptor = descriptors.get(pkg)
-                if (!oldDescriptor) continue
+                if (!oldDescriptor) {
+                    progress.tick()
+                    continue
+                }
 
                 const oldRange = structUtils.parseRange(oldDescriptor.range)
                 const isSemverProtocol =
@@ -296,7 +305,10 @@ class SemverUpCommand extends Command<CommandContext> {
                         configuration.get('defaultProtocol') === 'npm:') ||
                     oldRange.protocol === 'npm:'
 
-                if (!isSemverProtocol) continue
+                if (!isSemverProtocol) {
+                    progress.tick()
+                    continue
+                }
 
                 const ident = structUtils.convertToIdent(oldDescriptor)
                 const newDescriptor = await suggestUtils.fetchDescriptorFrom(
@@ -316,11 +328,15 @@ class SemverUpCommand extends Command<CommandContext> {
                 ) {
                     updates.set(ident.identHash, newDescriptor)
                 }
+
+                progress.tick()
             }
 
             if (updates.size) {
                 groups.set(ruleGlob, updates)
             }
+
+            await reportedProgress
         }
 
         return groups
