@@ -183,7 +183,7 @@ class SemverUpCommand extends Command<CommandContext> {
 
         let configFromFile: Record<string, unknown> = {}
         try {
-            configFromFile = miscUtils.dynamicRequireNoCache(configPPath)
+            configFromFile = miscUtils.dynamicRequire(configPPath)
         } catch (e) {
             // If no file and no command line args, default to match all packages
             configFromFile = {
