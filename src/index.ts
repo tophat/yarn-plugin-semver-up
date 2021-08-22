@@ -81,6 +81,8 @@ class SemverUpCommand extends Command<CommandContext> {
 
     preserveSemVerRange: boolean = Option.Boolean('--preserve-semver', true)
 
+    include?: string = Option.String('--include', { required: false })
+
     ruleGlobs: Array<string> = Option.Rest()
 
     async execute(): Promise<number> {
@@ -89,7 +91,7 @@ class SemverUpCommand extends Command<CommandContext> {
                 this.context.cwd,
                 this.context.plugins,
             )
-            const { project } = await Project.find(
+            const { project, workspace } = await Project.find(
                 configuration,
                 this.context.cwd,
             )
@@ -98,54 +100,92 @@ class SemverUpCommand extends Command<CommandContext> {
             await project.restoreInstallState()
 
             const config = await this.parseConfigFile()
-            const workspace = project.topLevelWorkspace
 
             const pipeline = async (report: Report) => {
-                const rulesWithPackages = ((await report.startTimerPromise<RulesWithPackages>(
-                    'Processing Semver Up Rules',
-                    { skipIfEmpty: false },
-                    async () =>
-                        this.getRulesWithPackages({
-                            config,
-                            workspace,
-                            report,
-                        }),
-                )) as unknown) as RulesWithPackages
+                if (!workspace && !this.include) {
+                    throw new Error('Must be run from within a workspace.')
+                }
 
-                const rulesWithUpdates = ((await report.startTimerPromise<RulesWithUpdates>(
-                    'Finding Updates',
-                    { skipIfEmpty: false },
-                    async () =>
-                        this.findUpdateCandidates({
-                            workspace,
-                            rulesWithPackages,
-                            cache,
-                            configuration,
-                            report,
-                        }),
-                )) as unknown) as RulesWithUpdates
+                const allWorkspaceIdents = project.workspaces
+                    .filter(w => w.manifest.name)
+                    .map(w => structUtils.stringifyIdent(w.manifest.name))
 
-                const changeset = ((await report.startTimerPromise<Changeset>(
-                    'Staging Updates',
-                    { skipIfEmpty: false },
-                    async () =>
-                        this.applyUpdates({
-                            config,
-                            workspace,
-                            rulesWithUpdates,
-                            report,
-                        }),
-                )) as unknown) as Changeset
+                const workspaces = this.include
+                    ? new Set<Workspace>(
+                          micromatch(allWorkspaceIdents, this.include)
+                              .map(ident =>
+                                  project.tryWorkspaceByIdent(
+                                      structUtils.parseIdent(ident),
+                                  ),
+                              )
+                              .filter(v => v),
+                      )
+                    : new Set<Workspace>([workspace])
 
-                await report.startTimerPromise(
-                    'Writing Changeset File',
-                    { skipIfEmpty: true },
-                    async () => {
-                        await this.writeChangeset({
-                            changeset,
-                        })
-                    },
-                )
+                if (!workspaces.size) {
+                    throw new Error('No workspaces selected.')
+                }
+
+                const changesets: Changeset[] = []
+                for (const workspace of workspaces) {
+                    const workspaceName = structUtils.stringifyIdent(
+                        workspace.manifest.name,
+                    )
+                    const rulesWithPackages = ((await report.startTimerPromise<RulesWithPackages>(
+                        `[${workspaceName}] Processing Semver Up Rules`,
+                        { skipIfEmpty: false },
+                        async () =>
+                            this.getRulesWithPackages({
+                                config,
+                                workspace,
+                                report,
+                            }),
+                    )) as unknown) as RulesWithPackages
+
+                    const rulesWithUpdates = ((await report.startTimerPromise<RulesWithUpdates>(
+                        `[${workspaceName}] Finding Updates`,
+                        { skipIfEmpty: false },
+                        async () =>
+                            this.findUpdateCandidates({
+                                workspace,
+                                rulesWithPackages,
+                                cache,
+                                configuration,
+                                report,
+                            }),
+                    )) as unknown) as RulesWithUpdates
+
+                    const changeset = ((await report.startTimerPromise<Changeset>(
+                        `[${workspaceName}] Staging Updates`,
+                        { skipIfEmpty: false },
+                        async () =>
+                            this.applyUpdates({
+                                config,
+                                workspace,
+                                rulesWithUpdates,
+                                report,
+                            }),
+                    )) as unknown) as Changeset
+
+                    changesets.push(changeset)
+                }
+
+                if (workspaces.size > 1 && this.changesetFilename) {
+                    report.reportError(
+                        MessageName.UNNAMED,
+                        'Changesets not supported when targetting more than one workspace.',
+                    )
+                } else {
+                    await report.startTimerPromise(
+                        'Writing Changeset File',
+                        { skipIfEmpty: true },
+                        async () => {
+                            await this.writeChangeset({
+                                changeset: changesets[0],
+                            })
+                        },
+                    )
+                }
 
                 if (!this.dryRun) {
                     await project.install({ cache, report })
