@@ -42,9 +42,7 @@ interface Config {
     skipManifestOnlyChanges: boolean
 }
 
-type RulesWithPackages = Array<
-    [RuleGlob, { rule: RuleConfig; packages: Set<IdentHash> }]
->
+type RulesWithPackages = Array<[RuleGlob, { rule: RuleConfig; packages: Set<IdentHash> }]>
 
 type RulesWithUpdates = Map<RuleGlob, Map<IdentHash, Descriptor>>
 
@@ -87,14 +85,8 @@ class SemverUpCommand extends Command<CommandContext> {
 
     async execute(): Promise<number> {
         try {
-            const configuration = await Configuration.find(
-                this.context.cwd,
-                this.context.plugins,
-            )
-            const { project, workspace } = await Project.find(
-                configuration,
-                this.context.cwd,
-            )
+            const configuration = await Configuration.find(this.context.cwd, this.context.plugins)
+            const { project, workspace } = await Project.find(configuration, this.context.cwd)
             const cache = await Cache.find(configuration)
 
             await project.restoreInstallState()
@@ -107,18 +99,16 @@ class SemverUpCommand extends Command<CommandContext> {
                 }
 
                 const allWorkspaceIdents = project.workspaces
-                    .filter(w => w.manifest.name)
-                    .map(w => structUtils.stringifyIdent(w.manifest.name))
+                    .filter((w) => w.manifest.name)
+                    .map((w) => structUtils.stringifyIdent(w.manifest.name))
 
                 const workspaces = this.include
                     ? new Set<Workspace>(
                           micromatch(allWorkspaceIdents, this.include)
-                              .map(ident =>
-                                  project.tryWorkspaceByIdent(
-                                      structUtils.parseIdent(ident),
-                                  ),
+                              .map((ident) =>
+                                  project.tryWorkspaceByIdent(structUtils.parseIdent(ident)),
                               )
-                              .filter(v => v),
+                              .filter((v) => v),
                       )
                     : new Set<Workspace>([workspace])
 
@@ -128,9 +118,7 @@ class SemverUpCommand extends Command<CommandContext> {
 
                 const changesets: Changeset[] = []
                 for (const workspace of workspaces) {
-                    const workspaceName = structUtils.stringifyIdent(
-                        workspace.manifest.name,
-                    )
+                    const workspaceName = structUtils.stringifyIdent(workspace.manifest.name)
                     const rulesWithPackages = ((await report.startTimerPromise<RulesWithPackages>(
                         `[${workspaceName}] Processing Semver Up Rules`,
                         { skipIfEmpty: false },
@@ -216,10 +204,7 @@ class SemverUpCommand extends Command<CommandContext> {
     }
 
     async parseConfigFile(): Promise<Config> {
-        const configPPath = ppath.resolve(
-            ppath.cwd(),
-            npath.toPortablePath(this.configFilename),
-        )
+        const configPPath = ppath.resolve(ppath.cwd(), npath.toPortablePath(this.configFilename))
 
         let configFromFile: Record<string, unknown> = {}
         try {
@@ -244,15 +229,9 @@ class SemverUpCommand extends Command<CommandContext> {
                     ...rule,
                 },
             ]),
-            maxRulesApplied:
-                (configFromFile?.maxRulesApplied as
-                    | number
-                    | false
-                    | undefined) ?? 1,
+            maxRulesApplied: (configFromFile?.maxRulesApplied as number | false | undefined) ?? 1,
             skipManifestOnlyChanges:
-                (configFromFile?.skipManifestOnlyChanges as
-                    | boolean
-                    | undefined) ?? false,
+                (configFromFile?.skipManifestOnlyChanges as boolean | undefined) ?? false,
         }
 
         // overwrite rules with command line args
@@ -284,9 +263,10 @@ class SemverUpCommand extends Command<CommandContext> {
     }): Promise<RulesWithPackages> {
         const manifest = workspace.manifest
 
-        const ruleBuckets: RulesWithPackages = config.rules.map(
-            ([ruleGlob, rule]) => [ruleGlob, { rule, packages: new Set() }],
-        )
+        const ruleBuckets: RulesWithPackages = config.rules.map(([ruleGlob, rule]) => [
+            ruleGlob,
+            { rule, packages: new Set() },
+        ])
 
         const allDependencies = [
             ...manifest.dependencies.entries(),
@@ -299,10 +279,7 @@ class SemverUpCommand extends Command<CommandContext> {
         for (const [identHash, descriptor] of allDependencies) {
             const bucket = ruleBuckets.find(
                 ([ruleGlob]) =>
-                    micromatch(
-                        [structUtils.stringifyIdent(descriptor)],
-                        ruleGlob,
-                    ).length > 0,
+                    micromatch([structUtils.stringifyIdent(descriptor)], ruleGlob).length > 0,
             )
             if (bucket) {
                 bucket[1].packages.add(identHash)
@@ -371,10 +348,7 @@ class SemverUpCommand extends Command<CommandContext> {
                     },
                 )
 
-                if (
-                    newDescriptor &&
-                    oldDescriptor.range !== newDescriptor.range
-                ) {
+                if (newDescriptor && oldDescriptor.range !== newDescriptor.range) {
                     updates.set(ident.identHash, newDescriptor)
                 }
 
@@ -450,19 +424,13 @@ class SemverUpCommand extends Command<CommandContext> {
             const rule = globToRule.get(ruleGlob)
             if (!rule) continue
 
-            if (
-                config.maxRulesApplied &&
-                rulesAppliedCount >= config.maxRulesApplied
-            ) {
+            if (config.maxRulesApplied && rulesAppliedCount >= config.maxRulesApplied) {
                 break
             }
 
             let ruleUpdateCount = 0
             for (const [identHash, descriptor] of updates.entries()) {
-                if (
-                    rule.maxPackageUpdates &&
-                    ruleUpdateCount >= rule.maxPackageUpdates
-                ) {
+                if (rule.maxPackageUpdates && ruleUpdateCount >= rule.maxPackageUpdates) {
                     break
                 }
 
@@ -473,19 +441,15 @@ class SemverUpCommand extends Command<CommandContext> {
                 const oldBoundDescriptor = workspace.dependencies.get(identHash)
                 if (!oldBoundDescriptor) continue
 
-                const fromRange = structUtils.parseRange(
-                    oldBoundDescriptor.range,
-                ).selector
-                const toRange = structUtils.parseRange(descriptor.range)
-                    .selector
+                const fromRange = structUtils.parseRange(oldBoundDescriptor.range).selector
+                const toRange = structUtils.parseRange(descriptor.range).selector
                 const fromVersion = this.getInstalledVersion({
                     descriptorHash: oldBoundDescriptor.descriptorHash,
                     project: workspace.project,
                 })
                 const toVersion = this.extractVersionFromRange(toRange)
 
-                if (fromVersion === toVersion && config.skipManifestOnlyChanges)
-                    continue
+                if (fromVersion === toVersion && config.skipManifestOnlyChanges) continue
 
                 changeset.set(stringifiedIdent, {
                     fromRange,
@@ -501,12 +465,8 @@ class SemverUpCommand extends Command<CommandContext> {
                 )
 
                 for (const scopeKey of ['dependencies', 'devDependencies']) {
-                    if (
-                        workspace.manifest.getForScope(scopeKey).has(identHash)
-                    ) {
-                        workspace.manifest
-                            .getForScope(scopeKey)
-                            .set(identHash, descriptor)
+                    if (workspace.manifest.getForScope(scopeKey).has(identHash)) {
+                        workspace.manifest.getForScope(scopeKey).set(identHash, descriptor)
                     }
                 }
 
@@ -523,11 +483,7 @@ class SemverUpCommand extends Command<CommandContext> {
         return changeset
     }
 
-    async writeChangeset({
-        changeset,
-    }: {
-        changeset: Changeset
-    }): Promise<void> {
+    async writeChangeset({ changeset }: { changeset: Changeset }): Promise<void> {
         if (!this.changesetFilename) return
 
         const changesetData: {
