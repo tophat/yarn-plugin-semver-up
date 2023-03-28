@@ -97,5 +97,5 @@
     "micromatch": "^4.0.5",
     "semver": "^7.3.7"
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.2"
 }
