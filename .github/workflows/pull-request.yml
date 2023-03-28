@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-20.04
     if: "github.event_name == 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:
-        - uses: actions/checkout@v3.0.2
+        - uses: actions/checkout@v3
           with:
             ref: ${{ github.event.pull_request.head.sha }}
             fetch-depth: 0
         - uses: ./.github/actions/detect-env
         - name: Setup Node.js
-          uses: actions/setup-node@v3.3.0
+          uses: actions/setup-node@v3
           with:
             node-version: ${{ env.NODE_VERSION }}
         - name: Create artifacts directory
@@ -41,19 +41,19 @@ jobs:
           with:
             name: commit-watch-artifacts
             path: ${{ env.ARTIFACT_DIR }}
-  tests:
-    name: Lint & Tests
+  linting:
+    name: Lint
     runs-on: ubuntu-20.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
-        - uses: actions/checkout@v3.0.2
+        - uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - uses: ./.github/actions/detect-env
         - name: Setup Node.js
-          uses: actions/setup-node@v3.3.0
+          uses: actions/setup-node@v3
           with:
-            node-version: ${{ env.NODE_VERSION }}
+            node-version: 18
         - name: Create artifacts directory
           run: mkdir -p ${{ env.ARTIFACT_DIR }}
         - name: Restore yarn cache
@@ -63,11 +63,39 @@ jobs:
             path: |
               ./.yarn
               ./.pnp.*
-            key: ${{ env.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+            key: ${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
         - name: Install dependencies
           run: yarn install --immutable
         - name: Linting
           run: yarn lint:ci
+  tests:
+    name: Tests
+    runs-on: ubuntu-20.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+    steps:
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+        - uses: ./.github/actions/detect-env
+        - name: Setup Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: ${{ matrix.node-version }}
+        - name: Create artifacts directory
+          run: mkdir -p ${{ env.ARTIFACT_DIR }}
+        - name: Restore yarn cache
+          id: yarn-cache
+          uses: actions/cache@v2
+          with:
+            path: |
+              ./.yarn
+              ./.pnp.*
+            key: ${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+        - name: Install dependencies
+          run: yarn install --immutable
         - name: Set GitHub user for tests
           run: |
             git config --global user.email "opensource@tophat.com"
@@ -86,13 +114,13 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-20.04
-    needs: [tests]
+    needs: [linting,tests]
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
-        - uses: actions/checkout@v3.0.2
+        - uses: actions/checkout@v3
         - uses: ./.github/actions/detect-env
         - name: Setup Node.js
-          uses: actions/setup-node@v3.3.0
+          uses: actions/setup-node@v3
           with:
             node-version: ${{ env.NODE_VERSION }}
         - name: Create artifacts directory
