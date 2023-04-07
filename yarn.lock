@@ -2099,7 +2099,7 @@ __metadata:
     "@yarnpkg/plugin-essentials": ^3.2.1
     "@yarnpkg/plugin-git": ^2.6.1
     "@yarnpkg/plugin-npm": ^2.7.1
-    "@yarnpkg/plugin-pack": ^3.1.2
+    "@yarnpkg/plugin-pack": ^3.2.0
     "@yarnpkg/sdks": ^3.0.0-rc.9
     all-contributors-cli: ^6.20.0
     babel-jest: ^28.1.1
@@ -2637,6 +2637,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@yarnpkg/fslib@npm:^2.10.2":
+  version: 2.10.2
+  resolution: "@yarnpkg/fslib@npm:2.10.2"
+  dependencies:
+    "@yarnpkg/libzip": ^2.3.0
+    tslib: ^1.13.0
+  checksum: 2cde3543c8cf6b1ae00bbc4602cae8a6198d8f29176d8eb575ed7902531d2d67f3a63e4c7e04927b7ee68a42103fefe22d0bf8d176c3f2bcfa5f47ecbe13aa01
+  languageName: node
+  linkType: hard
+
 "@yarnpkg/fslib@npm:^2.5.0, @yarnpkg/fslib@npm:^2.6.2":
   version: 2.6.2
   resolution: "@yarnpkg/fslib@npm:2.6.2"
@@ -2674,6 +2684,16 @@ __metadata:
     "@types/emscripten": ^1.38.0
     tslib: ^1.13.0
   checksum: 974a286d4e7ff52bd924d56cb39492898a2306e95774362e4a3eb94690f180273a078243bf4044909e0fe29354552acc1cddd7d10d71ce332f7b1e1ff8eb54d9
+  languageName: node
+  linkType: hard
+
+"@yarnpkg/libzip@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@yarnpkg/libzip@npm:2.3.0"
+  dependencies:
+    "@types/emscripten": ^1.39.6
+    tslib: ^1.13.0
+  checksum: 533a4883f69bb013f955d80dc19719881697e6849ea5f0cbe6d87ef1d582b05cbae8a453802f92ad0c852f976296cac3ff7834be79a7e415b65cdf213e448110
   languageName: node
   linkType: hard
 
@@ -2915,6 +2935,22 @@ __metadata:
     "@yarnpkg/cli": ^3.2.1
     "@yarnpkg/core": ^3.2.1
   checksum: 5dbb5bd4131df0212826ad9d0f6a832f50b0fc2823303bc38e1b49f6265042525dca3b561887738044c122c91c69db7d6adc3f56a7ae61b4dfd230b3f1fdd3c2
+  languageName: node
+  linkType: hard
+
+"@yarnpkg/plugin-pack@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@yarnpkg/plugin-pack@npm:3.2.0"
+  dependencies:
+    "@yarnpkg/fslib": ^2.10.2
+    clipanion: 3.2.0-rc.4
+    micromatch: ^4.0.2
+    tar-stream: ^2.0.1
+    tslib: ^1.13.0
+  peerDependencies:
+    "@yarnpkg/cli": ^3.5.0
+    "@yarnpkg/core": ^3.5.0
+  checksum: 441edd3c84ea0eb0a2ea6192ee536e075c85c98d9f67f67a484e2d551f4c8d420a9803a1b3c59b3e9f44e5c84a833392f1ccf120087d7d1c594ccf54f4ff007a
   languageName: node
   linkType: hard
 
@@ -3884,6 +3920,17 @@ __metadata:
   version: 3.0.0
   resolution: "cli-width@npm:3.0.0"
   checksum: 4c94af3769367a70e11ed69aa6095f1c600c0ff510f3921ab4045af961820d57c0233acfa8b6396037391f31b4c397e1f614d234294f979ff61430a6c166c3f6
+  languageName: node
+  linkType: hard
+
+"clipanion@npm:3.2.0-rc.4":
+  version: 3.2.0-rc.4
+  resolution: "clipanion@npm:3.2.0-rc.4"
+  dependencies:
+    typanion: ^3.3.1
+  peerDependencies:
+    typanion: "*"
+  checksum: c9d8ba9e16dca3016c32f42107a7602c52c9176626e0c815113c32b614ca125a9707221ec9df9c0a06e9741a23e0664153db1522c4f80b29f4b4d427fba002be
   languageName: node
   linkType: hard
 
