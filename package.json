@@ -36,7 +36,7 @@
     "@tophat/conventional-changelog-config": "^1.0.1",
     "@tophat/eslint-config": "^9.0.0",
     "@tophat/eslint-import-resolver-require": "^1.0.0",
-    "@types/jest": "^28.1.2",
+    "@types/jest": "^28.1.8",
     "@types/micromatch": "^4.0.2",
     "@types/node": "^16.0.0",
     "@types/semver": "^7.3.6",
