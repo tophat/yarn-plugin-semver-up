@@ -1,25 +1,25 @@
 import {
     Cache,
-    CommandContext,
+    type CommandContext,
     Configuration,
-    Descriptor,
-    DescriptorHash,
-    IdentHash,
+    type Descriptor,
+    type DescriptorHash,
+    type IdentHash,
     MessageName,
-    Plugin,
+    type Plugin,
     Project,
-    Report,
+    type Report,
     StreamReport,
     ThrowReport,
-    Workspace,
+    type Workspace,
     miscUtils,
     structUtils,
 } from '@yarnpkg/core'
 import { npath, ppath, xfs } from '@yarnpkg/fslib'
 import { suggestUtils } from '@yarnpkg/plugin-essentials'
-import { Command, Option, Usage } from 'clipanion'
+import { Command, Option, type Usage } from 'clipanion'
 import micromatch from 'micromatch'
-import { ReleaseType } from 'semver'
+import { type ReleaseType } from 'semver'
 import semverDiff from 'semver/functions/diff'
 import semverMinVersion from 'semver/ranges/min-version'
 
@@ -100,7 +100,7 @@ class SemverUpCommand extends Command<CommandContext> {
 
                 const allWorkspaceIdents = project.workspaces
                     .filter((w) => w.manifest.name)
-                    .map((w) => structUtils.stringifyIdent(w.manifest.name))
+                    .map((w) => structUtils.stringifyIdent(w.manifest.name!))
 
                 const workspaces = this.include
                     ? new Set<Workspace>(
@@ -108,9 +108,9 @@ class SemverUpCommand extends Command<CommandContext> {
                               .map((ident) =>
                                   project.tryWorkspaceByIdent(structUtils.parseIdent(ident)),
                               )
-                              .filter((v) => v),
+                              .filter((v): v is Workspace => Boolean(v)),
                       )
-                    : new Set<Workspace>([workspace])
+                    : new Set<Workspace>([workspace!])
 
                 if (!workspaces.size) {
                     throw new Error('No workspaces selected.')
@@ -118,8 +118,10 @@ class SemverUpCommand extends Command<CommandContext> {
 
                 const changesets: Changeset[] = []
                 for (const workspace of workspaces) {
-                    const workspaceName = structUtils.stringifyIdent(workspace.manifest.name)
-                    const rulesWithPackages = ((await report.startTimerPromise<RulesWithPackages>(
+                    const workspaceName = workspace.manifest.name
+                        ? structUtils.stringifyIdent(workspace.manifest.name)
+                        : 'Unknown'
+                    const rulesWithPackages = (await report.startTimerPromise<RulesWithPackages>(
                         `[${workspaceName}] Processing Semver Up Rules`,
                         { skipIfEmpty: false },
                         async () =>
@@ -128,9 +130,9 @@ class SemverUpCommand extends Command<CommandContext> {
                                 workspace,
                                 report,
                             }),
-                    )) as unknown) as RulesWithPackages
+                    )) as unknown as RulesWithPackages
 
-                    const rulesWithUpdates = ((await report.startTimerPromise<RulesWithUpdates>(
+                    const rulesWithUpdates = (await report.startTimerPromise<RulesWithUpdates>(
                         `[${workspaceName}] Finding Updates`,
                         { skipIfEmpty: false },
                         async () =>
@@ -141,9 +143,9 @@ class SemverUpCommand extends Command<CommandContext> {
                                 configuration,
                                 report,
                             }),
-                    )) as unknown) as RulesWithUpdates
+                    )) as unknown as RulesWithUpdates
 
-                    const changeset = ((await report.startTimerPromise<Changeset>(
+                    const changeset = (await report.startTimerPromise<Changeset>(
                         `[${workspaceName}] Staging Updates`,
                         { skipIfEmpty: false },
                         async () =>
@@ -153,7 +155,7 @@ class SemverUpCommand extends Command<CommandContext> {
                                 rulesWithUpdates,
                                 report,
                             }),
-                    )) as unknown) as Changeset
+                    )) as unknown as Changeset
 
                     changesets.push(changeset)
                 }
@@ -305,7 +307,7 @@ class SemverUpCommand extends Command<CommandContext> {
         configuration: Configuration
         report: Report
     }): Promise<RulesWithUpdates> {
-        const descriptors: Map<IdentHash, Descriptor> = new Map([
+        const descriptors = new Map<IdentHash, Descriptor>([
             ...workspace.manifest.dependencies.entries(),
             ...workspace.manifest.devDependencies.entries(),
         ])
@@ -399,7 +401,7 @@ class SemverUpCommand extends Command<CommandContext> {
     }): ReleaseType | null {
         if (!fromVersion || !toVersion) return null
         try {
-            return semverDiff(fromVersion, toVersion, { loose: true })
+            return semverDiff(fromVersion, toVersion)
         } catch (err) {
             return null
         }
@@ -438,7 +440,7 @@ class SemverUpCommand extends Command<CommandContext> {
                     structUtils.convertToIdent(descriptor),
                 )
 
-                const oldBoundDescriptor = workspace.dependencies.get(identHash)
+                const oldBoundDescriptor = workspace.anchoredPackage.dependencies.get(identHash)
                 if (!oldBoundDescriptor) continue
 
                 const fromRange = structUtils.parseRange(oldBoundDescriptor.range).selector
