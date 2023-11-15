@@ -51,7 +51,7 @@
     "@yarnpkg/plugin-git": "^3.0.0",
     "@yarnpkg/plugin-npm": "^3.0.0",
     "@yarnpkg/plugin-pack": "^4.0.0",
-    "@yarnpkg/sdks": "^3.0.0",
+    "@yarnpkg/sdks": "^3.1.0",
     "all-contributors-cli": "^6.20.0",
     "babel-jest": "^28.1.1",
     "clipanion": "^4.0.0-rc.2",

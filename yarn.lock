@@ -2399,7 +2399,7 @@ __metadata:
     "@yarnpkg/plugin-git": "npm:^3.0.0"
     "@yarnpkg/plugin-npm": "npm:^3.0.0"
     "@yarnpkg/plugin-pack": "npm:^4.0.0"
-    "@yarnpkg/sdks": "npm:^3.0.0"
+    "@yarnpkg/sdks": "npm:^3.1.0"
     all-contributors-cli: "npm:^6.20.0"
     babel-jest: "npm:^28.1.1"
     clipanion: "npm:^4.0.0-rc.2"
@@ -2984,6 +2984,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@yarnpkg/core@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "@yarnpkg/core@npm:4.0.2"
+  dependencies:
+    "@arcanis/slice-ansi": "npm:^1.1.1"
+    "@types/semver": "npm:^7.1.0"
+    "@types/treeify": "npm:^1.0.0"
+    "@yarnpkg/fslib": "npm:^3.0.1"
+    "@yarnpkg/libzip": "npm:^3.0.0"
+    "@yarnpkg/parsers": "npm:^3.0.0"
+    "@yarnpkg/shell": "npm:^4.0.0"
+    camelcase: "npm:^5.3.1"
+    chalk: "npm:^3.0.0"
+    ci-info: "npm:^3.2.0"
+    clipanion: "npm:^4.0.0-rc.2"
+    cross-spawn: "npm:7.0.3"
+    diff: "npm:^5.1.0"
+    dotenv: "npm:^16.3.1"
+    fast-glob: "npm:^3.2.2"
+    got: "npm:^11.7.0"
+    lodash: "npm:^4.17.15"
+    micromatch: "npm:^4.0.2"
+    p-limit: "npm:^2.2.0"
+    semver: "npm:^7.1.2"
+    strip-ansi: "npm:^6.0.0"
+    tar: "npm:^6.0.5"
+    tinylogic: "npm:^2.0.0"
+    treeify: "npm:^1.1.0"
+    tslib: "npm:^2.4.0"
+    tunnel: "npm:^0.0.6"
+  checksum: 2a480feddd6aa2a9dadf7a17495e1698a96707f6ac7acfc1dd6a35c17445ed3f7d7037a5e4b14dce7c04771488f6da59bf3e2864efd9050630b9757b902abd65
+  languageName: node
+  linkType: hard
+
 "@yarnpkg/extensions@npm:^2.0.0":
   version: 2.0.0
   resolution: "@yarnpkg/extensions@npm:2.0.0"
@@ -3427,12 +3461,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@yarnpkg/sdks@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@yarnpkg/sdks@npm:3.0.0"
+"@yarnpkg/sdks@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@yarnpkg/sdks@npm:3.1.0"
   dependencies:
-    "@yarnpkg/core": "npm:^4.0.0"
-    "@yarnpkg/fslib": "npm:^3.0.0"
+    "@yarnpkg/core": "npm:^4.0.2"
+    "@yarnpkg/fslib": "npm:^3.0.1"
     "@yarnpkg/parsers": "npm:^3.0.0"
     chalk: "npm:^3.0.0"
     clipanion: "npm:^4.0.0-rc.2"
@@ -3441,7 +3475,7 @@ __metadata:
     tslib: "npm:^2.4.0"
   bin:
     sdks: ./lib/cli.js
-  checksum: 5bb07521edfb05397ba3014110017e513bb01a270e6b5152e6cbdf5ec53c65be974076a60f4dc99e8530c7447e285f6895f141df0902d89189d761c51bd71fe0
+  checksum: 34a69ca60e13f57cdf71e36642c0f1af09157ede7a268582dfab5bb10051fa70580749d10c281c7996ad36645c645f8c444da8c8bf59774d74f932bb3e48aa6e
   languageName: node
   linkType: hard
 
