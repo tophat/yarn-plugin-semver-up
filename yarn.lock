@@ -2385,7 +2385,7 @@ __metadata:
     "@tophat/eslint-config": "npm:^9.0.0"
     "@tophat/eslint-import-resolver-require": "npm:^1.0.0"
     "@types/jest": "npm:^28.1.2"
-    "@types/micromatch": "npm:^4.0.2"
+    "@types/micromatch": "npm:^4.0.6"
     "@types/node": "npm:^16.0.0"
     "@types/semver": "npm:^7.3.6"
     "@typescript-eslint/eslint-plugin": "npm:^6.10.0"
@@ -2600,12 +2600,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/micromatch@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "@types/micromatch@npm:4.0.2"
+"@types/micromatch@npm:^4.0.6":
+  version: 4.0.6
+  resolution: "@types/micromatch@npm:4.0.6"
   dependencies:
     "@types/braces": "npm:*"
-  checksum: 500e3c1d759a357199af601a7f4fb11d28447a8ec60fecd0bd3d4077da5bfb143f0b42ad7b91747b90a0dbd488a3d89d72bfd0b5531a8c3c8f42da222efe806e
+  checksum: d86560645ad74acfd8251da612e459f72c1b146ad48cfd894aae1c4d0e55f2ea32491f793b623c7890dae546bf4b6e3b31fc536e4448ea5331c7a26acc450f94
   languageName: node
   linkType: hard
 
